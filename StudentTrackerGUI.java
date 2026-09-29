@@ -252,8 +252,13 @@ public class StudentTrackerGUI extends JFrame {
         searchField = createStyledTextField();
         searchField.setPreferredSize(new Dimension(240, 36));
         searchField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
             public void insertUpdate(DocumentEvent e) { filterTable(); }
+
+            @Override
             public void removeUpdate(DocumentEvent e) { filterTable(); }
+
+            @Override
             public void changedUpdate(DocumentEvent e) { filterTable(); }
         });
 
