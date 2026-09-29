@@ -1,105 +1,93 @@
-<div align="center">
+# Student Grade Tracker
 
-# STUDENT GRADE TRACKER
-### Academic Performance Management & Analytics System
-
-[![Java](https://img.shields.io/badge/Java-8%2B%20%7C%2011%20%7C%2017%20%7C%2021-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-0284C7?style=for-the-badge)]()
-[![Internship](https://img.shields.io/badge/CodeAlpha-Task%201%20Completed-059669?style=for-the-badge)]()
-[![Interface](https://img.shields.io/badge/Interface-Modern%20Swing%20GUI%20%2B%20CLI-0F172A?style=for-the-badge)]()
-[![Dependencies](https://img.shields.io/badge/Dependencies-Zero%20(Pure%20Java%20SE)-success?style=for-the-badge)]()
-
-<br/>
-<p align="center">
-  <b>A modern, minimalist desktop application and CLI suite for managing student academic records, tracking grade statistics, and generating official summary reports.</b>
-</p>
-
-</div>
+> **CodeAlpha Java Programming Internship â€” Task 1**  
+> An intuitive, beginner-friendly desktop application and CLI tool that allows teachers to enter students' grades and automatically compute their **average**, **highest**, and **lowest** scores.
 
 ---
 
-## 📋 Project Overview
+## Task Requirements Met
 
-**Student Grade Tracker** is a professional academic management application developed for **CodeAlpha Java Programming Internship (Task 1)**. It provides educators with a centralized workspace to input, manage, analyze, and report student performance.
-
-Engineered with a **minimalist, uncluttered design system** (Slate `#0F172A` & Clean Neutral `#F8FAFC`), it delivers real-time statistical analytics, letter grade grading curves, instant search filtering, persistent CSV storage, and official printable HTML summary reports.
-
----
-
-## 🌟 Key Features
-
-- **Modern Minimalist Desktop GUI**: Designed with flat white cards, subtle 1px dividers, anti-aliased button renderers, and zero visual clutter.
-- **Real-Time Statistical KPI Cards**:
-  - 📊 **Class Overall Average**: Calculates the true class-wide average grade across all student assignments.
-  - 🏆 **Highest Score**: Highlights the top grade achieved in the cohort.
-  - 📉 **Lowest Score**: Dynamically detects the minimum score recorded.
-  - 👥 **Total Enrolled**: Live count of active students on the roster.
-- **Letter Grade Computing Engine**: Automatically maps numeric averages to standard academic grading bands:
-  - **A** (90.0% – 100.0%)
-  - **B** (80.0% – 89.9%)
-  - **C** (70.0% – 79.9%)
-  - **D** (60.0% – 69.9%)
-  - **F** (< 60.0%)
-- **Dynamic Instant Search**: Filter student records in real time by typing a student name or letter grade (`A`, `B`, `C`...).
-- **Official Printable HTML Reports**: Export an academic summary report (`reports/Student_Summary_Report.html`) with print-to-PDF support and browser preview with one click.
-- **Zero-Setup File Persistence**: Automatically saves and restores student records to `data/students.csv` on every modification.
-- **Dual Mode (GUI & CLI)**: Double-click launches the desktop interface by default; running with `--console` launches the classic terminal interface.
+- [x] **Enter Student Grades**: Add students and their exam/quiz scores via an easy comma-separated input field (e.g. `85, 92, 78`).
+- [x] **Compute Average Score**: Automatically computes individual student averages and class-wide average score.
+- [x] **Compute Highest Score**: Instantly identifies the highest score across all students.
+- [x] **Compute Lowest Score**: Instantly identifies the lowest score across all students.
+- [x] **Beginner-Friendly Interface**: Simple vocabulary with zero confusing jargon (no complicated grade curves, no confusing export steps).
+- [x] **Class Summary Report**: Built-in summary dialog showing class averages, top score, lowest score, and student breakdown.
+- [x] **Dual Execution Mode**: Modern desktop window by default, with a simple command-line interface (CLI) fallback.
+- [x] **Zero Dependencies**: Pure Java SE standard library. Runs out of the box on any machine with Java installed.
 
 ---
 
-## 🏗️ Architecture & Component Design
+## Key Features
+
+1. **Clean Minimalist Design**:
+   - Modern slate and clean white layout with soft borders.
+   - Real-time indicator: `â— SYSTEM ACTIVE`.
+
+2. **Top Metric Cards (Instant Stats)**:
+   - **Total Students**: Total number of students added.
+   - **Class Average**: Average grade percentage across the class.
+   - **Highest Score**: Top score achieved in class.
+   - **Lowest Score**: Lowest score recorded in class.
+
+3. **Student Form**:
+   - Enter student name and comma-separated scores.
+   - Single-click **Save Student**, **Clear Form**, and **Delete Student**.
+
+4. **Student List & Search**:
+   - Clean table showing: **Student Name**, **Grades**, **Grade Count**, **Average Score**, **Highest Score**, and **Lowest Score**.
+   - Search box to filter students quickly by name.
+
+5. **View Summary Report**:
+   - Click **View Summary Report** to open a clean summary report popup.
+   - Includes a **Save Report to File** button to save `reports/summary_report.txt`.
+
+6. **Automatic Saving (CSV)**:
+   - All student records are automatically saved to `data/students.csv`.
+
+---
+
+## Project Structure
 
 ```
 d:/studenttracker/
-├── Student.java           # Core domain entity (grades list, averages, min, max, letter grade, CSV serialization)
-├── StudentStorage.java    # Persistence engine (CSV read/write with auto-healing seed data)
-├── StudentTrackerGUI.java # Modern Swing Desktop GUI (KPI cards, input form, searchable table, report generator)
-├── StudentGradeTracker.java # Bootstrap entry point with dual-mode launcher (GUI by default, CLI via --console)
-├── run.bat                # 1-click Windows compile & launch script
-├── data/                  # Auto-generated persistent data directory
-│   └── students.csv       # Stored student records
-└── reports/               # Generated printable academic reports
-    └── Student_Summary_Report.html
+â”œâ”€â”€ Student.java              # Student data model (stores grades, calculates average, highest, lowest)
+â”œâ”€â”€ StudentStorage.java       # Saves and loads students from data/students.csv
+â”œâ”€â”€ StudentTrackerGUI.java    # Minimalist Desktop GUI (Swing)
+â”œâ”€â”€ StudentGradeTracker.java  # Main program launcher (GUI by default, CLI via --console)
+â”œâ”€â”€ run.bat                   # 1-click Windows runner
+â”œâ”€â”€ data/
+â”‚   â””â”€â”€ students.csv          # Stored student records
+â””â”€â”€ reports/
+    â””â”€â”€ summary_report.txt    # Saved summary reports
 ```
 
 ---
 
-## 🚀 How to Run
+## How to Run
 
-### Option 1: 1-Click Launch (Windows)
-Double-click **`run.bat`** in the project folder to compile and open the Desktop GUI.
+### Method 1: 1-Click Launch (Windows)
+Double-click **`run.bat`** in the project folder.
 
-### Option 2: Command Line (Any OS)
+### Method 2: Command Line (Windows / Mac / Linux)
 
-1. **Compile all source files:**
+1. Compile all Java files:
    ```bash
-   javac Student.java StudentStorage.java StudentTrackerGUI.java StudentGradeTracker.java
+   javac *.java
    ```
 
-2. **Launch Desktop GUI:**
+2. Run the Desktop GUI:
    ```bash
    java StudentGradeTracker
    ```
 
-3. **Launch Terminal / Console Mode:**
+3. Run in Console / CLI Mode (Optional):
    ```bash
    java StudentGradeTracker --console
    ```
 
 ---
 
-## 🔒 Technical Standards & Best Practices
+## Author
 
-| Standard | Implementation |
-|---|---|
-| **Data Structures** | Uses `ArrayList<Double>` for flexible grade collections per student and `List<Student>` for the class roster |
-| **Input Validation** | Rejects negative scores or values $> 100$; validates non-empty names and handles comma-separated grade strings |
-| **Encapsulation** | Strict private fields with immutable list copies returned from getters |
-| **Fault Tolerance** | Pre-populates sample class data if `students.csv` is missing or empty |
-| **Zero Dependencies** | Built using 100% standard Java SE (`javax.swing`, `java.awt`, `java.io`, `java.util`) |
-
----
-
-## 👨‍💻 Author & Credits
-
-Developed by **Bright Yankey** for the **CodeAlpha Java Programming Internship** (Task 1: Student Grade Tracker).
+Developed by **Bright Yankey** for the **CodeAlpha Java Programming Internship** (Task 1).

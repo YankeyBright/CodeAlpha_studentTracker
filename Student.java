@@ -138,7 +138,7 @@ public class Student {
 
     @Override
     public String toString() {
-        return String.format("%s | Avg: %.1f (%s) | High: %.1f | Low: %.1f | Grades: [%s]",
-                name, getAverage(), getLetterGrade(), getHighestGrade(), getLowestGrade(), getGradesAsString());
+        return String.format("%s | Avg: %.1f | High: %.1f | Low: %.1f | Grades: [%s]",
+                name, getAverage(), getHighestGrade(), getLowestGrade(), getGradesAsString());
     }
 }
