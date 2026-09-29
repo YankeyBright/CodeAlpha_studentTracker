@@ -20,17 +20,22 @@ import java.util.List;
 
 /**
  * Modern, minimalist, beginner-friendly Desktop GUI for Student Grade Tracker.
- * Directly fulfills CodeAlpha Task 1:
- * "Develop a program that allows a teacher to enter students' grades
- * and compute their average, highest, and lowest scores."
+ * Allows teachers to enter student grades and automatically calculates average,
+ * highest, and lowest scores.
  *
- * Built with pure Java Swing and zero external dependencies.
+ * Built using pure Java Swing with zero external dependencies.
  */
-public class StudentTrackerGUI extends JFrame {
+@SuppressWarnings("serial")
+public final class StudentTrackerGUI extends JFrame {
+    private static final long serialVersionUID = 1L;
+
+    // Handles saving and loading student records from disk
     private final StudentStorage storage;
+
+    // Current list of students displayed in the application
     private final List<Student> studentList = new ArrayList<>();
 
-    // UI Color Palette (Minimalist Slate & Accent)
+    // Color Palette: Clean slate, white cards, and clear accent colors
     public static final Color BG_APP = new Color(0xF8, 0xFA, 0xFC);
     public static final Color BG_CARD = Color.WHITE;
     public static final Color PRIMARY = new Color(0x0F, 0x17, 0x2A);
@@ -42,49 +47,53 @@ public class StudentTrackerGUI extends JFrame {
     public static final Color DANGER = new Color(0xDC, 0x26, 0x26);
     public static final Color ACCENT = new Color(0x02, 0x84, 0xC7);
 
-    // KPI Metric Labels
+    // Top Metric Card Labels (updated live when grades change)
     private JLabel kpiAvgLabel;
     private JLabel kpiHighLabel;
     private JLabel kpiLowLabel;
     private JLabel kpiCountLabel;
 
-    // Form Fields
+    // Input fields for teacher entry
     private JTextField nameField;
     private JTextField gradesField;
     private JTextField searchField;
 
-    // Table
+    // Table and Table Data Model
     private StudentTableModel tableModel;
     private JTable studentTable;
 
+    // Main window setup
+    @SuppressWarnings("this-escape")
     public StudentTrackerGUI() {
         super("Student Grade Tracker - CodeAlpha Task 1");
         this.storage = new StudentStorage();
 
+        // Standard window settings
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1080, 700);
-        setMinimumSize(new Dimension(860, 560));
-        setLocationRelativeTo(null);
+        setSize(1080, 720);
+        setMinimumSize(new Dimension(880, 580));
+        setLocationRelativeTo(null); // center window on user screen
 
-        // Load saved students
+        // Load saved students from CSV
         studentList.addAll(storage.loadStudents());
 
+        // Root container panel with clean slate background
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(BG_APP);
         setContentPane(root);
 
-        // 1. Top Header Bar
+        // 1. Top Header Bar (App Title & Status Indicator)
         root.add(createHeaderPanel(), BorderLayout.NORTH);
 
-        // 2. Center Content (KPI Cards + Form + Table)
+        // 2. Main Content Area (Cards + Form + Table)
         JPanel centerContainer = new JPanel(new BorderLayout(0, 16));
         centerContainer.setBackground(BG_APP);
         centerContainer.setBorder(new EmptyBorder(16, 20, 16, 20));
 
-        // Metric KPI Cards Banner
+        // Top Row: 4 Metric Cards for quick statistical overview
         centerContainer.add(createKpiBanner(), BorderLayout.NORTH);
 
-        // Split: Left Form + Right Table
+        // Center Split: Left Input Form + Right Student Table
         JPanel workspace = new JPanel(new BorderLayout(16, 0));
         workspace.setOpaque(false);
         workspace.add(createFormSidebar(), BorderLayout.WEST);
@@ -93,14 +102,16 @@ public class StudentTrackerGUI extends JFrame {
         centerContainer.add(workspace, BorderLayout.CENTER);
         root.add(centerContainer, BorderLayout.CENTER);
 
-        // 3. Status Bar
+        // 3. Bottom Status Bar (Shows file location and info)
         root.add(createStatusBar(), BorderLayout.SOUTH);
 
+        // Refresh all table data and calculation cards
         refreshData();
     }
 
-    // ==================== TOP HEADER ====================
+    // ==================== TOP HEADER BAR ====================
 
+    // Creates the top navigation and title bar
     private JPanel createHeaderPanel() {
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(Color.WHITE);
@@ -109,6 +120,7 @@ public class StudentTrackerGUI extends JFrame {
                 new EmptyBorder(14, 24, 14, 24)
         ));
 
+        // Title and description on the left
         JPanel leftBox = new JPanel();
         leftBox.setLayout(new BoxLayout(leftBox, BoxLayout.Y_AXIS));
         leftBox.setOpaque(false);
@@ -126,6 +138,7 @@ public class StudentTrackerGUI extends JFrame {
         leftBox.add(sub);
         header.add(leftBox, BorderLayout.WEST);
 
+        // Beginner-friendly system active status badge on the right
         JLabel status = new JLabel("\u25CF SYSTEM ACTIVE");
         status.setFont(new Font("Segoe UI", Font.BOLD, 11));
         status.setForeground(SUCCESS);
@@ -134,8 +147,9 @@ public class StudentTrackerGUI extends JFrame {
         return header;
     }
 
-    // ==================== KPI STATS BANNER ====================
+    // ==================== TOP METRIC CARDS ====================
 
+    // Creates the 4 real-time metric cards at the top
     private JPanel createKpiBanner() {
         JPanel banner = new JPanel(new GridLayout(1, 4, 14, 0));
         banner.setOpaque(false);
@@ -145,14 +159,22 @@ public class StudentTrackerGUI extends JFrame {
         kpiHighLabel = new JLabel("0.0");
         kpiLowLabel = new JLabel("0.0");
 
+        // Card 1: Total Students count
         banner.add(createKpiCard("TOTAL STUDENTS", kpiCountLabel, "Total students added", PRIMARY));
+
+        // Card 2: Overall Class Average score
         banner.add(createKpiCard("CLASS AVERAGE", kpiAvgLabel, "Overall class average", ACCENT));
+
+        // Card 3: Top score in class
         banner.add(createKpiCard("HIGHEST SCORE", kpiHighLabel, "Highest score in class", SUCCESS));
+
+        // Card 4: Lowest score in class
         banner.add(createKpiCard("LOWEST SCORE", kpiLowLabel, "Lowest score in class", DANGER));
 
         return banner;
     }
 
+    // Helper to build a clean individual metric card
     private JPanel createKpiCard(String title, JLabel valueLabel, String subtitle, Color accentColor) {
         JPanel card = new JPanel(new BorderLayout(0, 4));
         card.setBackground(Color.WHITE);
@@ -176,8 +198,9 @@ public class StudentTrackerGUI extends JFrame {
         return card;
     }
 
-    // ==================== LEFT INPUT SIDEBAR ====================
+    // ==================== LEFT INPUT SIDEBAR (FORM) ====================
 
+    // Creates the sidebar where teachers enter or edit student grades
     private JPanel createFormSidebar() {
         JPanel sidebar = new JPanel(new BorderLayout(0, 16));
         sidebar.setPreferredSize(new Dimension(320, 0));
@@ -196,6 +219,7 @@ public class StudentTrackerGUI extends JFrame {
         formSub.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         formSub.setForeground(TEXT_MUTED);
 
+        // Input text fields (comfortable 42px height)
         nameField = createStyledTextField();
         gradesField = createStyledTextField();
 
@@ -204,12 +228,15 @@ public class StudentTrackerGUI extends JFrame {
         formContent.add(formSub);
         formContent.add(Box.createVerticalStrut(18));
 
+        // Student name input row
         formContent.add(createFormField("Student Name:", nameField));
         formContent.add(Box.createVerticalStrut(14));
-        formContent.add(createFormField("Grades (comma-separated, e.g. 85, 92, 78):", gradesField));
-        formContent.add(Box.createVerticalStrut(18));
 
-        // Action Buttons
+        // Grades comma-separated input row
+        formContent.add(createFormField("Grades (comma-separated, e.g. 85, 92, 78):", gradesField));
+        formContent.add(Box.createVerticalStrut(20));
+
+        // Action CTA Buttons with increased comfortable 44px height
         JButton saveBtn = createPrimaryButton("Save Student");
         saveBtn.addActionListener(e -> handleSaveStudent());
 
@@ -219,8 +246,11 @@ public class StudentTrackerGUI extends JFrame {
         JButton deleteBtn = createDangerButton("Delete Student");
         deleteBtn.addActionListener(e -> handleDeleteStudent());
 
-        JPanel btnBox = new JPanel(new GridLayout(3, 1, 0, 8));
+        // Container holding the 3 CTA buttons with 10px vertical spacing
+        JPanel btnBox = new JPanel(new GridLayout(3, 1, 0, 10));
         btnBox.setOpaque(false);
+        btnBox.setPreferredSize(new Dimension(280, 150)); // Generous CTA container height
+        btnBox.setMaximumSize(new Dimension(Short.MAX_VALUE, 150));
         btnBox.add(saveBtn);
         btnBox.add(clearBtn);
         btnBox.add(deleteBtn);
@@ -231,8 +261,9 @@ public class StudentTrackerGUI extends JFrame {
         return sidebar;
     }
 
+    // Helper to package a label and text field together
     private JPanel createFormField(String label, JTextField field) {
-        JPanel p = new JPanel(new BorderLayout(0, 4));
+        JPanel p = new JPanel(new BorderLayout(0, 5));
         p.setOpaque(false);
         JLabel l = new JLabel(label);
         l.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -242,19 +273,21 @@ public class StudentTrackerGUI extends JFrame {
         return p;
     }
 
-    // ==================== RIGHT TABLE PANEL ====================
+    // ==================== RIGHT TABLE PANEL (STUDENT LIST) ====================
 
+    // Creates the student table with real-time search toolbar
     private JPanel createTablePanel() {
         JPanel panel = new JPanel(new BorderLayout(0, 12));
         panel.setOpaque(false);
 
-        // Search & Action Toolbar
+        // Search and Action Bar
         JPanel searchBar = new JPanel(new BorderLayout(12, 0));
         searchBar.setBackground(Color.WHITE);
         searchBar.setBorder(createCardBorder());
 
+        // Search text field (matches 44px CTA height)
         searchField = createStyledTextField();
-        searchField.setPreferredSize(new Dimension(240, 36));
+        searchField.setPreferredSize(new Dimension(250, 44));
         searchField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) { filterTable(); }
@@ -266,7 +299,8 @@ public class StudentTrackerGUI extends JFrame {
             public void changedUpdate(DocumentEvent e) { filterTable(); }
         });
 
-        JPanel searchLeft = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
+        // Left side of toolbar: search icon & search input box
+        JPanel searchLeft = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 6));
         searchLeft.setOpaque(false);
         JLabel searchIcon = new JLabel("Search Student:");
         searchIcon.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -274,23 +308,24 @@ public class StudentTrackerGUI extends JFrame {
         searchLeft.add(searchIcon);
         searchLeft.add(searchField);
 
-        // Summary Report Button
+        // Right side of toolbar: View Summary Report CTA button (44px height)
         JButton summaryBtn = createSecondaryButton("View Summary Report");
+        summaryBtn.setPreferredSize(new Dimension(190, 44));
         summaryBtn.addActionListener(e -> handleViewSummaryReport());
 
         searchBar.add(searchLeft, BorderLayout.WEST);
         searchBar.add(summaryBtn, BorderLayout.EAST);
         panel.add(searchBar, BorderLayout.NORTH);
 
-        // Table
+        // Table setup
         tableModel = new StudentTableModel();
         studentTable = new JTable(tableModel);
-        studentTable.setRowHeight(36);
+        studentTable.setRowHeight(38); // generous row height for readability
         studentTable.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         studentTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
         studentTable.getTableHeader().setBackground(new Color(0xF1, 0xF5, 0xF9));
         studentTable.getTableHeader().setForeground(TEXT_MAIN);
-        studentTable.getTableHeader().setPreferredSize(new Dimension(0, 36));
+        studentTable.getTableHeader().setPreferredSize(new Dimension(0, 38));
         studentTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         studentTable.setShowVerticalLines(false);
         studentTable.setShowHorizontalLines(true);
@@ -298,7 +333,7 @@ public class StudentTrackerGUI extends JFrame {
         studentTable.setSelectionBackground(new Color(0xE0, 0xF2, 0xFE));
         studentTable.setSelectionForeground(TEXT_MAIN);
 
-        // When row clicked, populate left form
+        // When a student row is clicked, load their info into the left form
         studentTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int row = studentTable.getSelectedRow();
@@ -312,24 +347,28 @@ public class StudentTrackerGUI extends JFrame {
             }
         });
 
-        // Cell padding and Score Styling
+        // Custom Cell Renderer: adds padding and colors highest (green) and lowest (red)
         DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable t, Object val, boolean isSel, boolean hasFoc, int row, int col) {
                 Component c = super.getTableCellRendererComponent(t, val, isSel, hasFoc, row, col);
-                setBorder(new EmptyBorder(0, 10, 0, 10));
+                setBorder(new EmptyBorder(0, 10, 0, 10)); // 10px internal cell padding
 
                 if (!isSel) {
-                    if (col == 3) { // Average Score
+                    if (col == 3) {
+                        // Average score in bold dark
                         setForeground(TEXT_MAIN);
                         setFont(new Font("Segoe UI", Font.BOLD, 13));
-                    } else if (col == 4) { // Highest Score
+                    } else if (col == 4) {
+                        // Highest score in soft emerald green
                         setForeground(SUCCESS);
                         setFont(new Font("Segoe UI", Font.BOLD, 13));
-                    } else if (col == 5) { // Lowest Score
+                    } else if (col == 5) {
+                        // Lowest score in soft crimson red
                         setForeground(DANGER);
                         setFont(new Font("Segoe UI", Font.BOLD, 13));
                     } else {
+                        // Regular text for name and grades
                         setForeground(TEXT_MAIN);
                         setFont(new Font("Segoe UI", Font.PLAIN, 13));
                     }
@@ -338,17 +377,20 @@ public class StudentTrackerGUI extends JFrame {
             }
         };
 
+        // Apply cell renderer to all columns
         for (int i = 0; i < studentTable.getColumnCount(); i++) {
             studentTable.getColumnModel().getColumn(i).setCellRenderer(cellRenderer);
         }
 
-        studentTable.getColumnModel().getColumn(0).setPreferredWidth(180); // Name
+        // Set optimal column widths
+        studentTable.getColumnModel().getColumn(0).setPreferredWidth(180); // Student Name
         studentTable.getColumnModel().getColumn(1).setPreferredWidth(220); // Grades
         studentTable.getColumnModel().getColumn(2).setPreferredWidth(90);  // Grade Count
         studentTable.getColumnModel().getColumn(3).setPreferredWidth(110); // Average Score
         studentTable.getColumnModel().getColumn(4).setPreferredWidth(100); // Highest Score
         studentTable.getColumnModel().getColumn(5).setPreferredWidth(100); // Lowest Score
 
+        // Put table inside a scroll pane
         JScrollPane scrollPane = new JScrollPane(studentTable);
         scrollPane.setBorder(createCardBorder());
         scrollPane.getViewport().setBackground(Color.WHITE);
@@ -357,8 +399,9 @@ public class StudentTrackerGUI extends JFrame {
         return panel;
     }
 
-    // ==================== STATUS BAR ====================
+    // ==================== BOTTOM STATUS BAR ====================
 
+    // Creates the footer bar with persistence and system status
     private JPanel createStatusBar() {
         JPanel status = new JPanel(new BorderLayout());
         status.setBackground(Color.WHITE);
@@ -380,17 +423,20 @@ public class StudentTrackerGUI extends JFrame {
         return status;
     }
 
-    // ==================== ACTIONS & EVENT HANDLERS ====================
+    // ==================== EVENT HANDLERS & BUTTON ACTIONS ====================
 
+    // Adds a new student or updates an existing student
     private void handleSaveStudent() {
         String name = nameField.getText().trim();
         String gradesText = gradesField.getText().trim();
 
+        // Validate that name is not blank
         if (name.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter a student name.", "Missing Name", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
+        // Parse comma-separated grades into numbers
         List<Double> gradesList = new ArrayList<>();
         if (!gradesText.isEmpty()) {
             String[] tokens = gradesText.split("[,\\s]+");
@@ -398,6 +444,7 @@ public class StudentTrackerGUI extends JFrame {
                 if (tok.trim().isEmpty()) continue;
                 try {
                     double g = Double.parseDouble(tok.trim());
+                    // Grades must be between 0 and 100
                     if (g < 0 || g > 100) {
                         JOptionPane.showMessageDialog(this, "Grade " + g + " is out of range. Grades must be between 0 and 100.", "Invalid Grade", JOptionPane.WARNING_MESSAGE);
                         return;
@@ -410,7 +457,7 @@ public class StudentTrackerGUI extends JFrame {
             }
         }
 
-        // Check if student already exists (update) or is new
+        // Check if student with this name already exists (update mode)
         Student existing = null;
         for (Student s : studentList) {
             if (s.getName().equalsIgnoreCase(name)) {
@@ -420,18 +467,24 @@ public class StudentTrackerGUI extends JFrame {
         }
 
         if (existing != null) {
+            // Update existing student's grades
             existing.clearGrades();
-            for (Double g : gradesList) existing.addGrade(g);
+            for (Double g : gradesList) {
+                existing.addGrade(g);
+            }
         } else {
+            // Add as new student
             studentList.add(new Student(name, gradesList));
         }
 
+        // Save immediately to CSV file on disk
         storage.saveStudents(studentList);
         refreshData();
         clearInputs();
         JOptionPane.showMessageDialog(this, "Student '" + name + "' saved successfully.", "Saved", JOptionPane.INFORMATION_MESSAGE);
     }
 
+    // Deletes the student currently selected in the table
     private void handleDeleteStudent() {
         int row = studentTable.getSelectedRow();
         if (row < 0) {
@@ -442,6 +495,7 @@ public class StudentTrackerGUI extends JFrame {
         Student s = tableModel.getStudentAt(row);
         if (s == null) return;
 
+        // Ask teacher for confirmation before deleting
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Are you sure you want to delete student: " + s.getName() + "?",
                 "Confirm Deletion", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
@@ -454,21 +508,24 @@ public class StudentTrackerGUI extends JFrame {
         }
     }
 
+    // Clears the input form fields
     private void clearInputs() {
         nameField.setText("");
         gradesField.setText("");
         studentTable.clearSelection();
     }
 
+    // Filters the table rows instantly as user types in the search box
     private void filterTable() {
         String q = searchField.getText().trim().toLowerCase();
         if (q.isEmpty()) {
-            tableModel.setStudents(studentList);
+            tableModel.setStudents(studentList); // show all students
             return;
         }
 
         List<Student> filtered = new ArrayList<>();
         for (Student s : studentList) {
+            // Match student name
             if (s.getName().toLowerCase().contains(q)) {
                 filtered.add(s);
             }
@@ -476,11 +533,13 @@ public class StudentTrackerGUI extends JFrame {
         tableModel.setStudents(filtered);
     }
 
+    // Reloads table rows and recalculates the 4 top metric cards
     private void refreshData() {
         tableModel.setStudents(studentList);
         calculateKpis();
     }
 
+    // Computes overall class average, highest score, and lowest score
     private void calculateKpis() {
         if (studentList.isEmpty()) {
             kpiCountLabel.setText("0 Students");
@@ -495,19 +554,21 @@ public class StudentTrackerGUI extends JFrame {
         double overallHigh = -1;
         double overallLow = 101;
 
+        // Loop through all students and all grades
         for (Student s : studentList) {
             for (Double g : s.getGrades()) {
                 totalSum += g;
                 totalGrades++;
                 if (g > overallHigh) {
-                    overallHigh = g;
+                    overallHigh = g; // track highest grade
                 }
                 if (g < overallLow) {
-                    overallLow = g;
+                    overallLow = g; // track lowest grade
                 }
             }
         }
 
+        // Calculate class average
         double avg = totalGrades > 0 ? (totalSum / totalGrades) : 0.0;
         kpiCountLabel.setText(studentList.size() + (studentList.size() == 1 ? " Student" : " Students"));
         kpiAvgLabel.setText(String.format("%.1f%%", avg));
@@ -515,8 +576,9 @@ public class StudentTrackerGUI extends JFrame {
         kpiLowLabel.setText(overallLow <= 100 ? String.format("%.1f", overallLow) : "-");
     }
 
-    // ==================== SUMMARY REPORT DIALOG ====================
+    // ==================== SUMMARY REPORT MODAL DIALOG ====================
 
+    // Displays the clean summary report dialog
     private void handleViewSummaryReport() {
         if (studentList.isEmpty()) {
             JOptionPane.showMessageDialog(this,
@@ -532,6 +594,7 @@ public class StudentTrackerGUI extends JFrame {
         String highestStudent = "-";
         String lowestStudent = "-";
 
+        // Calculate statistics for the report
         for (Student s : studentList) {
             classAvgSum += s.getAverage();
             for (double grade : s.getGrades()) {
@@ -548,9 +611,9 @@ public class StudentTrackerGUI extends JFrame {
 
         double classAverage = classAvgSum / totalStudents;
 
-        // Build report dialog
+        // Build the dialog window
         JDialog dialog = new JDialog(this, "Class Summary Report", true);
-        dialog.setSize(620, 520);
+        dialog.setSize(640, 530);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
@@ -558,7 +621,7 @@ public class StudentTrackerGUI extends JFrame {
         content.setBackground(BG_APP);
         content.setBorder(new EmptyBorder(20, 24, 20, 24));
 
-        // Header
+        // Header section of report
         JPanel top = new JPanel(new BorderLayout(0, 4));
         top.setOpaque(false);
         JLabel titleLbl = new JLabel("SUMMARY REPORT");
@@ -574,7 +637,7 @@ public class StudentTrackerGUI extends JFrame {
         top.add(dateLbl, BorderLayout.SOUTH);
         content.add(top, BorderLayout.NORTH);
 
-        // Stats summary card
+        // Grid showing key statistics (Total Students, Average, High, Low)
         JPanel statsCard = new JPanel(new GridLayout(2, 2, 12, 12));
         statsCard.setBackground(Color.WHITE);
         statsCard.setBorder(createCardBorder());
@@ -584,7 +647,7 @@ public class StudentTrackerGUI extends JFrame {
         statsCard.add(createSummaryItem("Highest Score", String.format("%.1f (%s)", overallHighest, highestStudent)));
         statsCard.add(createSummaryItem("Lowest Score", String.format("%.1f (%s)", overallLowest, lowestStudent)));
 
-        // Student breakdown list
+        // Individual student breakdown list
         JPanel listPanel = new JPanel(new BorderLayout(0, 8));
         listPanel.setOpaque(false);
         JLabel listTitle = new JLabel("Individual Student Breakdown:");
@@ -614,11 +677,13 @@ public class StudentTrackerGUI extends JFrame {
         centerPanel.add(listPanel, BorderLayout.CENTER);
         content.add(centerPanel, BorderLayout.CENTER);
 
-        // Bottom buttons: Save to Text File & Close
+        // Bottom CTA buttons (Save Report to File & Close) with 44px height
         JPanel bottomBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         bottomBar.setOpaque(false);
 
         JButton saveFileBtn = createSecondaryButton("Save Report to File");
+        saveFileBtn.setPreferredSize(new Dimension(180, 44)); // Taller CTA box
+
         double finalClassAvg = classAverage;
         double finalHigh = overallHighest;
         double finalLow = overallLowest;
@@ -664,7 +729,7 @@ public class StudentTrackerGUI extends JFrame {
         });
 
         JButton closeBtn = createPrimaryButton("Close");
-        closeBtn.setPreferredSize(new Dimension(100, 36));
+        closeBtn.setPreferredSize(new Dimension(110, 44)); // Taller CTA box
         closeBtn.addActionListener(e -> dialog.dispose());
 
         bottomBar.add(saveFileBtn);
@@ -675,6 +740,7 @@ public class StudentTrackerGUI extends JFrame {
         dialog.setVisible(true);
     }
 
+    // Helper to format a label and value inside the summary card
     private JPanel createSummaryItem(String label, String value) {
         JPanel p = new JPanel(new BorderLayout(0, 2));
         p.setOpaque(false);
@@ -691,8 +757,9 @@ public class StudentTrackerGUI extends JFrame {
         return p;
     }
 
-    // ==================== UI STYLING HELPERS ====================
+    // ==================== UI STYLING & CTA BUTTON FACTORIES ====================
 
+    // Helper for subtle 1px card borders
     private Border createCardBorder() {
         return BorderFactory.createCompoundBorder(
                 new LineBorder(BORDER, 1, true),
@@ -700,22 +767,26 @@ public class StudentTrackerGUI extends JFrame {
         );
     }
 
+    // Creates a styled text field with comfortable 42px height
     private JTextField createStyledTextField() {
         JTextField tf = new JTextField();
         tf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         tf.setForeground(TEXT_MAIN);
         tf.setBackground(Color.WHITE);
+        tf.setPreferredSize(new Dimension(0, 42)); // Generous input box height
         tf.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(BORDER, 1, true),
-                new EmptyBorder(8, 10, 8, 10)
+                new EmptyBorder(8, 12, 8, 12)
         ));
         return tf;
     }
 
+    // Creates a primary dark CTA button (increased height to 44px)
     private JButton createPrimaryButton(String text) {
         JButton btn = new JButton(text);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btn.setForeground(Color.WHITE);
+        btn.setPreferredSize(new Dimension(0, 44)); // Increased CTA height
         btn.setFocusPainted(false);
         btn.setContentAreaFilled(false);
         btn.setOpaque(false);
@@ -726,7 +797,7 @@ public class StudentTrackerGUI extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(PRIMARY);
-                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 6, 6);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 8, 8); // Smooth rounded corners
 
                 FontMetrics fm = g2.getFontMetrics(c.getFont());
                 int x = (c.getWidth() - fm.stringWidth(btn.getText())) / 2;
@@ -740,10 +811,12 @@ public class StudentTrackerGUI extends JFrame {
         return btn;
     }
 
+    // Creates a secondary outlined CTA button (increased height to 44px)
     private JButton createSecondaryButton(String text) {
         JButton btn = new JButton(text);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btn.setForeground(TEXT_MAIN);
+        btn.setPreferredSize(new Dimension(0, 44)); // Increased CTA height
         btn.setFocusPainted(false);
         btn.setContentAreaFilled(false);
         btn.setOpaque(false);
@@ -754,9 +827,9 @@ public class StudentTrackerGUI extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(Color.WHITE);
-                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 6, 6);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 8, 8);
                 g2.setColor(BORDER);
-                g2.drawRoundRect(0, 0, c.getWidth() - 1, c.getHeight() - 1, 6, 6);
+                g2.drawRoundRect(0, 0, c.getWidth() - 1, c.getHeight() - 1, 8, 8);
 
                 FontMetrics fm = g2.getFontMetrics(c.getFont());
                 int x = (c.getWidth() - fm.stringWidth(btn.getText())) / 2;
@@ -770,10 +843,12 @@ public class StudentTrackerGUI extends JFrame {
         return btn;
     }
 
+    // Creates a danger red CTA button (increased height to 44px)
     private JButton createDangerButton(String text) {
         JButton btn = new JButton(text);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btn.setForeground(Color.WHITE);
+        btn.setPreferredSize(new Dimension(0, 44)); // Increased CTA height
         btn.setFocusPainted(false);
         btn.setContentAreaFilled(false);
         btn.setOpaque(false);
@@ -784,7 +859,7 @@ public class StudentTrackerGUI extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(DANGER);
-                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 6, 6);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 8, 8);
 
                 FontMetrics fm = g2.getFontMetrics(c.getFont());
                 int x = (c.getWidth() - fm.stringWidth(btn.getText())) / 2;
@@ -798,22 +873,35 @@ public class StudentTrackerGUI extends JFrame {
         return btn;
     }
 
-    // ==================== TABLE MODEL ====================
+    // ==================== TABLE DATA MODEL ====================
 
+    // Provides student data to the Swing JTable
+    @SuppressWarnings("serial")
     private static class StudentTableModel extends AbstractTableModel {
+        private static final long serialVersionUID = 1L;
+
+        // Table column header names
         private final String[] columns = {
             "Student Name", "Recorded Grades", "Grade Count", "Average Score", "Highest Score", "Lowest Score"
         };
+
+        // Table rows data
         private final List<Student> data = new ArrayList<>();
 
+        // Updates table data and refreshes view
         public void setStudents(List<Student> list) {
             data.clear();
-            if (list != null) data.addAll(list);
+            if (list != null) {
+                data.addAll(list);
+            }
             fireTableDataChanged();
         }
 
+        // Returns the student at a specific row
         public Student getStudentAt(int row) {
-            if (row >= 0 && row < data.size()) return data.get(row);
+            if (row >= 0 && row < data.size()) {
+                return data.get(row);
+            }
             return null;
         }
 
@@ -821,6 +909,7 @@ public class StudentTrackerGUI extends JFrame {
         @Override public int getColumnCount() { return columns.length; }
         @Override public String getColumnName(int col) { return columns[col]; }
 
+        // Returns the text value for each cell in the table
         @Override
         public Object getValueAt(int row, int col) {
             Student s = data.get(row);
