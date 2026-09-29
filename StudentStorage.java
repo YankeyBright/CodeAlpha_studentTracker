@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Handles persistent storage of student data to a CSV file.
+ * handles  storage of student data to a CSV file.
  */
 public class StudentStorage {
     private static final String DATA_DIR = "data";
