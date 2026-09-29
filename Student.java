@@ -1,99 +1,103 @@
-
 import java.util.ArrayList;
 import java.util.List;
 
-// This class stores info about one student - their name and grades
+/**
+ * Represents a student with their registered grades and academic calculations.
+ */
 public class Student {
-
     private String name;
-    private ArrayList<Double> grades; // list to hold all grades for this student
+    private final ArrayList<Double> grades;
 
-    // constructor that takes just a name
     public Student(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Student name cannot be empty.");
+        }
         this.name = name.trim();
         this.grades = new ArrayList<>();
     }
 
-    // constructor that takes name and grades
     public Student(String name, List<Double> grades) {
-        this.name = name.trim();
-        this.grades = new ArrayList<>(grades);
+        this(name);
+        if (grades != null) {
+            for (Double g : grades) {
+                addGrade(g);
+            }
+        }
     }
 
-    // getters and setters
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Student name cannot be empty.");
+        }
         this.name = name.trim();
     }
 
     public List<Double> getGrades() {
-        return grades;
+        return new ArrayList<>(grades);
     }
 
-    public void setGrades(List<Double> grades) {
-        this.grades = new ArrayList<>(grades);
+    public int getGradeCount() {
+        return grades.size();
     }
 
-    // add one grade to the student
     public void addGrade(double grade) {
-        if (grade < 0 || grade > 100) {
-            throw new IllegalArgumentException("Grade must be between 0 and 100. Got: " + grade);
+        if (grade < 0.0 || grade > 100.0) {
+            throw new IllegalArgumentException("Grade must be between 0.0 and 100.0. Received: " + grade);
         }
         grades.add(grade);
     }
 
-    // calculate and return the average of all grades
+    public void clearGrades() {
+        grades.clear();
+    }
+
     public double getAverage() {
-        if (grades.isEmpty()) {
-            return 0.0;
-        }
-        double sum = 0;
-        for (double grade : grades) {
-            sum += grade;
+        if (grades.isEmpty()) return 0.0;
+        double sum = 0.0;
+        for (double g : grades) {
+            sum += g;
         }
         return sum / grades.size();
     }
 
-    // find the highest grade
     public double getHighestGrade() {
-        if (grades.isEmpty()) {
-            return 0.0;
-        }
+        if (grades.isEmpty()) return 0.0;
         double max = grades.get(0);
-        for (double grade : grades) {
-            if (grade > max) {
-                max = grade;
-            }
+        for (double g : grades) {
+            if (g > max) max = g;
         }
         return max;
     }
 
-    // find the lowest grade
     public double getLowestGrade() {
-        if (grades.isEmpty()) {
-            return 0.0;
-        }
+        if (grades.isEmpty()) return 0.0;
         double min = grades.get(0);
-        for (double grade : grades) {
-            if (grade < min) {
-                min = grade;
-            }
+        for (double g : grades) {
+            if (g < min) min = g;
         }
         return min;
     }
 
-    // turn grades into a readable string like "85, 92, 78"
+    public String getLetterGrade() {
+        if (grades.isEmpty()) return "N/A";
+        double avg = getAverage();
+        if (avg >= 90.0) return "A";
+        if (avg >= 80.0) return "B";
+        if (avg >= 70.0) return "C";
+        if (avg >= 60.0) return "D";
+        return "F";
+    }
+
     public String getGradesAsString() {
-        if (grades.isEmpty()) {
-            return "No grades";
-        }
+        if (grades.isEmpty()) return "No grades recorded";
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < grades.size(); i++) {
             double g = grades.get(i);
-            if (g == Math.floor(g)) { // if it's a whole number, don't show decimal
+            if (g == Math.floor(g)) {
                 sb.append(String.format("%.0f", g));
             } else {
                 sb.append(String.format("%.1f", g));
@@ -105,8 +109,36 @@ public class Student {
         return sb.toString();
     }
 
+    public String toCsv() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\"").append(name.replace("\"", "\"\"")).append("\"");
+        for (double g : grades) {
+            sb.append(",").append(g);
+        }
+        return sb.toString();
+    }
+
+    public static Student fromCsv(String line) {
+        if (line == null || line.trim().isEmpty()) return null;
+        String[] parts = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+        if (parts.length < 1) return null;
+
+        String name = parts[0].replace("\"", "").trim();
+        Student s = new Student(name);
+        for (int i = 1; i < parts.length; i++) {
+            String p = parts[i].trim();
+            if (!p.isEmpty()) {
+                try {
+                    s.addGrade(Double.parseDouble(p));
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        return s;
+    }
+
     @Override
     public String toString() {
-        return "Student: " + name + " | Grades: " + getGradesAsString() + " | Avg: " + String.format("%.2f", getAverage());
+        return String.format("%s | Avg: %.1f (%s) | High: %.1f | Low: %.1f | Grades: [%s]",
+                name, getAverage(), getLetterGrade(), getHighestGrade(), getLowestGrade(), getGradesAsString());
     }
 }
